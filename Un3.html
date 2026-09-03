@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kapitel 1 Lektion 2</title>
+</head>
+<body>
+  <script src="http://koda.nu/simple.js">
+
+
+
+  // Skapar ett objekt för spelaren (player)
+  var player = { x: totalWidth/2, y: totalHeight - totalHeight/3, size: 50, color: "#E8BEAC", color2: randomColor( 256, 256, 256), playerSpeed: 5 };
+
+
+
+updatesPerSecond = 60 ;// Sätter uppdateringsfrekvensen till 60 gånger per sekund
+function update() {
+  
+
+clearScreen(); // Rensa skärmen innan nästa ritning
+
+
+  rectangle(0, 0, 4680, 3200, "lightblue"); // Rita bakgrundshimmel
+  rectangle(0, totalHeight - totalHeight/3, totalWidth, totalHeight - totalHeight/10, "green"); // Rita bakgrundsmark
+  
+      // Rita andra figuren med objektets egenskaper
+  circle(player.x, player.y, player.size - 10, player.color2);
+
+
+
+    line(player.x, player.y, player.x, player.y + 180, 20, player.color2); // Rita en Kropp från (100, 100) till (300, 300) med slumpmässig färg.
+
+
+    line(player.x, player.y + 80, player.x + 30
+, player.y + 150, 20, player.color2); // Rita en Vänsterarm från (100, 100) till (300, 300) med slumpmässig färg.
+
+    line(player.x, player.y + 80, player.x - 30
+, player.y + 150, 20, player.color2); // Rita en Högerarm från (100, 100) till (300, 300) med slumpmässig färg.
+
+
+    line(player.x, player.y + 180, player.x + 30
+, player.y + 270, 20, player.color2); // Rita ett Vänsterben från (100, 100) till (300, 300) med slumpmässig färg.
+    line(player.x, player.y + 180, player.x + 25
+, player.y + 265, 27, "black"); // Rita en Vänsterbyxa från (100, 100) till (300, 300) med färgen svart.
+
+    line(player.x, player.y + 180, player.x - 30, player.y + 270, 20, player.color2); // Rita ett Högerben från (100, 100) till (300, 300) med färgen svart.
+    line(player.x, player.y + 180, player.x - 25, player.y + 265, 27, "black"); // Rita en Högerbyxa från (100, 100) till (300, 300) med färgen svart.
+
+    line(player.x, player.y + 60, player.x, player.y + 180, 25, "grey"); // Rita en tröja från (100, 100) till (300, 300) med färgen svart.
+
+    arc(player.x, player.y + 20, 20, 180, Math.PI * 2, "black"); // Rita en mun från (100, 100) med radien 180 och färgen svart.
+
+    
+    if (keyboard.a && keyboard.w) 
+    player.x += player.playerSpeed * 0.25, player.y += player.playerSpeed * 0.25;
+    if (keyboard.a && keyboard.s) 
+    player.x += player.playerSpeed * 0.25, player.y -= player.playerSpeed * 0.25;
+    if (keyboard.d && keyboard.s) 
+    player.x -= player.playerSpeed * 0.25, player.y -= player.playerSpeed * 0.25;
+    if (keyboard.d && keyboard.w) 
+    player.x -= player.playerSpeed * 0.25, player.y += player.playerSpeed * 0.25;
+    if (keyboard.d) 
+    player.x += player.playerSpeed;
+    if (keyboard.a)
+    player.x -= player.playerSpeed;
+    if (keyboard.s)
+    player.y += player.playerSpeed;
+    if (keyboard.w)
+    player.y -= player.playerSpeed;
+
+    if(player.x > totalWidth - 50) {
+      player.x = totalWidth - 50;
+    }
+    if(player.x < 50) {
+      player.x = 50;
+    }
+    if(player.y > totalHeight - 240) {
+      player.y = totalHeight - 240;
+    }
+    if(player.y < 30) {
+      player.y = 30;
+    }
+
+    
+    
+
+
+}
+
+  </script>
+</body>
+</html>
