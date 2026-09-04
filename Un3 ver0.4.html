@@ -11,9 +11,29 @@
 
 
   // Skapar ett objekt för spelaren (player)
-  var player = { x: totalWidth/2, y: totalHeight - totalHeight/3, size: 50, color: "#E8BEAC", color2: randomColor( 256, 256, 256), speedY: 0, speedX: 0, acceleration: 0.5, maxSpeed: 5 };
+  var player = { x: totalWidth/2,
+     y: totalHeight - totalHeight/3,
+     size: 50,
+    color: "#E8BEAC",
+      color2: randomColor( 256, 256, 256),
+        speedY: 0,
+         speedX: 0,
+       acceleration: 0.5,
+         maxSpeed: 5 };
 
 
+  //skapar ett objekt för fienden (enemy)
+  var enemy = { x: totalWidth/2,
+     y: totalHeight - totalHeight/3,
+      size: random(30, 85),
+      color: randomColor(random(60), random(80, 255), random(60)),
+      speedY: 0,
+      speedX: 0,
+      acceleration: random(0.5, 1),
+     maxSpeed: random(4.9, 5.3) };
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 updatesPerSecond = 60 ;// Sätter uppdateringsfrekvensen till 60 gånger per sekund
 function update() {
@@ -91,9 +111,12 @@ clearScreen(); // Rensa skärmen innan nästa ritning
     if(player.y < 30) {
       player.y = 30;
     }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // Rita fienden med objektets egenskaper
+    circle(enemy.x, enemy.y, enemy.size - 10, enemy.color); // Rita fienden som en cirkel med slumpmässig färg och storlek.
+    rectangle(enemy.x - 25, enemy.y + 20, 50, 100, "grey"); // Rita fiendens kropp som en rektangel med färgen grå.
 
-    
-    
 
 
 } // end of code block
