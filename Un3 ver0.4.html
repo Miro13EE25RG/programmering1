@@ -11,7 +11,7 @@
 
 
   // Skapar ett objekt för spelaren (player)
-  var player = { x: totalWidth/2, y: totalHeight - totalHeight/3, size: 50, color: "#E8BEAC", color2: randomColor( 256, 256, 256), playerSpeed: 5 };
+  var player = { x: totalWidth/2, y: totalHeight - totalHeight/3, size: 50, color: "#E8BEAC", color2: randomColor( 256, 256, 256), speedY: 0, speedX: 0, acceleration: 0.5, maxSpeed: 5 };
 
 
 
@@ -53,22 +53,31 @@ clearScreen(); // Rensa skärmen innan nästa ritning
     arc(player.x, player.y + 20, 20, 180, Math.PI * 2, "black"); // Rita en mun från (100, 100) med radien 180 och färgen svart.
 
     
-    if (keyboard.a && keyboard.w) 
-    player.x += player.playerSpeed * 0.25, player.y += player.playerSpeed * 0.25;
-    if (keyboard.a && keyboard.s) 
-    player.x += player.playerSpeed * 0.25, player.y -= player.playerSpeed * 0.25;
-    if (keyboard.d && keyboard.s) 
-    player.x -= player.playerSpeed * 0.25, player.y -= player.playerSpeed * 0.25;
-    if (keyboard.d && keyboard.w) 
-    player.x -= player.playerSpeed * 0.25, player.y += player.playerSpeed * 0.25;
-    if (keyboard.d) 
-    player.x += player.playerSpeed;
-    if (keyboard.a)
-    player.x -= player.playerSpeed;
-    if (keyboard.s)
-    player.y += player.playerSpeed;
-    if (keyboard.w)
-    player.y -= player.playerSpeed;
+    var directionX = 0;
+    var directionY = 0;
+
+    if (keyboard.a) directionX -= 1;
+    if (keyboard.d) directionX += 1;
+    if (keyboard.w) directionY -= 1;
+    if (keyboard.s) directionY += 1;
+
+    if (directionX !== 0 || directionY !== 0) {
+      var directionLength = Math.sqrt(directionX * directionX + directionY * directionY);
+      player.speedX += directionX / directionLength * player.acceleration;
+      player.speedY += directionY / directionLength * player.acceleration;
+    } else {
+      player.speedX *= 0.8;
+      player.speedY *= 0.8;
+    }
+
+    var currentSpeed = Math.sqrt(player.speedX * player.speedX + player.speedY * player.speedY);
+    if (currentSpeed > player.maxSpeed) {
+      player.speedX = player.speedX / currentSpeed * player.maxSpeed;
+      player.speedY = player.speedY / currentSpeed * player.maxSpeed;
+    }
+
+    player.x += player.speedX;
+    player.y += player.speedY;
 
     if(player.x > totalWidth - 50) {
       player.x = totalWidth - 50;
@@ -87,7 +96,7 @@ clearScreen(); // Rensa skärmen innan nästa ritning
     
 
 
-}
+} // end of code block
 
   </script>
 </body>
