@@ -8,6 +8,12 @@
 <body>
   <script src="http://koda.nu/simple.js">
 
+    var liv = 3;
+  var maxLiv = 3;
+
+  if (liv <= 0) {
+      alert(liv);
+    }
 
 
   // Skapar ett objekt för spelaren (player)
@@ -23,7 +29,7 @@
 
 
   updatesPerSecond = 60 ;// sets framerate to 60 times per second
-  var RESPAWN_TIME = updatesPerSecond * 2;
+  var RESPAWN_TIME = updatesPerSecond;
   var SPAWN_IMMUNITY_TIME = 80;
 
   //renders enemy object with midl
@@ -39,6 +45,8 @@
   }
 
   var enemy = createEnemy();
+  var damageTextTimer = 0;
+  var lastPlayerX = player.x;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,6 +212,10 @@ line(player.x, player.y, mouse.x, mouse.y, 2, "darkred"); // Rita en linje från
     player.x += player.speedX;
     player.y += player.speedY;
 
+    var playerDeltaX = player.x - lastPlayerX;
+    mouse.x += playerDeltaX;
+    lastPlayerX = player.x;
+
     if(player.x > totalWidth - 50) {
       player.x = totalWidth - 50;
     }
@@ -241,7 +253,7 @@ line(player.x, player.y, mouse.x, mouse.y, 2, "darkred"); // Rita en linje från
     }
 
     if (enemy.isDead) {
-      enemy.respawnTimer += 0.75;
+      enemy.respawnTimer += 1;
 
       if (enemy.respawnTimer >= RESPAWN_TIME) {
         enemy = createEnemy();
@@ -257,10 +269,45 @@ line(player.x, player.y, mouse.x, mouse.y, 2, "darkred"); // Rita en linje från
       }
     }
 
+    var dx = enemy.x - player.x;
+    var dy = enemy.y - player.y;
+    var distanceBetweenPlayerAndEnemy = Math.sqrt(dx * dx + dy * dy);
+    var playerContactDistance = player.size;
 
 
+    if (liv <= 0) {
+      setTimeout(function(){
+  alert("Game Over!");
+}, 175);
+      liv = 3; // Reset lives to 3
+      player.x = totalWidth / 2; // Reset player position
+      player.y = totalHeight - totalHeight / 3;
+      enemy = createEnemy(); // Reset enemy
+    }
 
+    if (!enemy.isDead && distanceBetweenPlayerAndEnemy < playerContactDistance) {
+      liv -= 1;
+      enemy.isDead = true;
+      rectangle(0, 0, totalWidth, totalHeight, "rgba(255, 0, 0, 0.5)"); 
+      rectangle(0, 0, totalWidth, totalHeight, "rgba(255, 255, 255, 0.5)"); // Flash the screen red and white when the player takes damage.
+    }
 
+    canvas.style.cursor = "none";
+    rectangle(mouse.x - 8, mouse.y - 8, 16, 16, "rgba(255, 255, 255, 0.6)");
+    rectangle(mouse.x - 6, mouse.y - 6, 12, 12, "rgba(0, 0, 0, 0.8)");
+
+    var healthBarWidth = 80;
+    var healthBarHeight = 15;
+    var healthRatio = Math.max(0, liv / maxLiv);
+    var healthBarX = player.x - healthBarWidth / 2;
+    var healthBarY = player.y - 70;
+
+    rectangle(healthBarX, healthBarY, healthBarWidth, healthBarHeight, "darkred");
+    rectangle(healthBarX, healthBarY, healthBarWidth * healthRatio, healthBarHeight, "limegreen");
+
+    
+    console.log(enemy.respawnTimer);
+    
 
 } // end of code block
 
