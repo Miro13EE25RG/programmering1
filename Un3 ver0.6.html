@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kapitel 1 Lektion 2</title>
+</head>
+<body>
+  <script src="http://koda.nu/simple.js">
+
+    var liv = 1; //controls how much life the player starts with/has during the game
+  var maxLiv = 3; //controls how much life the player can have
+
+  if (liv <= 0) {
+      alert(liv);
+    }
+
+
+  // Skapar ett objekt för spelaren (player)
+  var player = { x: totalWidth/2,
+     y: totalHeight - totalHeight/3,
+     size: 50,
+    color: "#E8BEAC",
+      color2: randomColor(random(60, 256), random(60, 256), random(60, 256)),
+        speedY: 0,
+         speedX: 0,
+       acceleration: 0.5,
+         maxSpeed: 5 //controls how fast the player can move
+        };
+
+    var lineColor = { color: "darkred" };
+
+
+  updatesPerSecond = 60 ;// sets framerate to 60 times per second
+  var RESPAWN_TIME = updatesPerSecond; //controls how long it takes for the enemy to respawn after being killed. if updatesPerSecond is set to 60, then the enemy will respawn after 1 second. if  it's set to 30, then 2 seconds.
+  var SPAWN_IMMUNITY_TIME = 80; //controls how long the enemy is immune after respawning
+
+  //renders enemy object with midl
+  function createEnemy() {
+     return { x: random(50, totalWidth - 50),
+       y: random(30, totalHeight / 3),
+        size: random(35, 50),
+        color: randomColor(random(40), random(200, 255), random(40)),
+       maxSpeed: random(4.9, 5.3),
+       isDead: false,
+        respawnTimer: 0,
+        respawnImmunity: SPAWN_IMMUNITY_TIME };
+  }
+
+  var enemies = [createEnemy()];
+  var playerKills = 0;
+  var damageTextTimer = 0;
+  var lastPlayerX = player.x;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function drawSunsetBackground() {
+  var skyHeight = totalHeight - totalHeight / 3;
+  var bands = 80;
+
+  for (var i = 0; i < bands; i++) {
+    var progress = i / (bands - 1);
+
+    var red = 25 + progress * 160;
+    var green = 25 + progress * 80;
+    var blue = 90 - progress * 15;
+
+    rectangle(
+      0,
+      i * skyHeight / bands,
+      4680,
+      skyHeight / bands + 1,
+      "rgb(" + red + "," + green + "," + blue + ")"
+    );
+  }
+}
+
+
+
+function lineIntersectsRectangle(x1, y1, x2, y2, rectangleX, rectangleY, rectangleWidth, rectangleHeight) {
+  var lineX = x2 - x1;
+  var lineY = y2 - y1;
+  var minimum = 0;
+  var maximum = 1;
+
+  function clipLine(p, q) {
+    if (p === 0) {
+      return q >= 0;
+    }
+
+    var ratio = q / p;
+
+    if (p < 0) {
+      if (ratio > maximum) return false;
+      if (ratio > minimum) minimum = ratio;
+    } else {
+      if (ratio < minimum) return false;
+      if (ratio < maximum) maximum = ratio;
+    }
+
+    return true;
+  }
+
+  return (
+    clipLine(-lineX, x1 - rectangleX) &&
+    clipLine(lineX, rectangleX + rectangleWidth - x1) &&
+    clipLine(-lineY, y1 - rectangleY) &&
+    clipLine(lineY, rectangleY + rectangleHeight - y1)
+  );
+}
+
+function enemyIsOnAimLine(enemy) { // checks if the enemy is on the line between the player and the mouse cursor
+  var lineX = mouse.x - player.x;
+  var lineY = mouse.y - player.y;
+  var lineLengthSquared = lineX * lineX + lineY * lineY;
+
+  if (lineLengthSquared === 0) return false; // If the line has zero length, the enemy cannot be on it
+
+  var enemyX = enemy.x - player.x;
+  var enemyY = enemy.y - player.y;
+  var positionOnLine = (enemyX * lineX + enemyY * lineY) / lineLengthSquared;
+  positionOnLine = Math.max(0, Math.min(1, positionOnLine));
+
+  var closestX = player.x + positionOnLine * lineX; // calculates the closest point on the line to the enemy's center
+  var closestY = player.y + positionOnLine * lineY;  
+  var distanceX = enemy.x - closestX;
+  var distanceY = enemy.y - closestY;
+  var enemyRadius = enemy.size - 10;
+
+  var enemyCircleHit = //check if the distance from the closest point on the line to the enemy's center is less than or equal to the enemy's radius
+    distanceX * distanceX + distanceY * distanceY <= enemyRadius * enemyRadius;
+
+  var enemyTorsoHit = lineIntersectsRectangle( // Check if the line intersects the enemy's torso rectangle
+    player.x,
+    player.y,
+    mouse.x,
+    mouse.y,
+    enemy.x - enemy.size / 2,
+    enemy.y + 20,
+    enemy.size,
+    100
+  );
+
+  return enemyCircleHit || enemyTorsoHit; //returns true if the enemy's head or torso is hit by the line, else returns false
+}
+
+
+document.getElementById("canvas").onmousedown = function(event) { //limits the player to only being able to shoot a limited number of times per second, to prevent spamming the mouse button
+            myfns(event)
+            };
+ 
+            var myfns = function(e) { //function to handle mouse down events
+ 
+            var e = e || window.event; 
+            var btnCode; 
+ 
+            if ('object' === typeof e) { // Check if the event object is available
+                btnCode = e.button;
+ 
+                switch (btnCode) { // Check which mouse button was pressed
+                case 0: 
+                    mbtn.left = true; // Left mouse button
+                    break; }}}
+
+                    var mbtn = { left: false }; // Object to track the state of the left mouse button
+                    var wasMbtnLeft = false; // Variable to track the previous state of the left mouse button
+
+                    document.getElementById("canvas").onmouseup = function() {
+                      mbtn.left = false;
+                    };
+
+function moveEnemyTowardPlayer(enemy) {
+  var directionX = player.x - enemy.x;
+  var directionY = player.y - enemy.y;
+  var distance = Math.sqrt(directionX * directionX + directionY * directionY);
+
+  if (distance > 1) {
+    enemy.x += directionX / distance * enemy.maxSpeed;
+    enemy.y += directionY / distance * enemy.maxSpeed;
+  }
+}
+
+function update() {
+  
+
+clearScreen(); // Rensa skärmen innan nästa ritning
+
+
+  drawSunsetBackground();
+  rectangle(0, totalHeight - totalHeight/3, totalWidth, totalHeight - totalHeight/10, "green"); // Rita bakgrundsmark
+  
+
+
+line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje från spelaren till musen med tjocklek 20 och färgen svart.
+
+      // Rita figuren med spelarens egenskaper
+  circle(player.x, player.y, player.size - 10, player.color2);  
+
+
+    circle(player.x + 30, player.y + 140, 15, player.color2); // Rita en flytande vänsterhand.
+    circle(player.x - 30, player.y + 140, 15, player.color2); // Rita en flytande högerhand.
+
+
+    line(player.x, player.y + 180, player.x + 30
+, player.y + 270, 20, player.color2); // Rita ett Vänsterben från (100, 100) till (300, 300) med slumpmässig färg.
+    line(player.x, player.y + 180, player.x + 25
+, player.y + 265, 27, "black"); // Rita en Vänsterbyxa från (100, 100) till (300, 300) med färgen svart.
+
+    line(player.x, player.y + 180, player.x - 30, player.y + 270, 20, player.color2); // Rita ett Högerben från (100, 100) till (300, 300) med färgen svart.
+    line(player.x, player.y + 180, player.x - 25, player.y + 265, 27, "black"); // Rita en Högerbyxa från (100, 100) till (300, 300) med färgen svart.
+
+    line(player.x, player.y + 40, player.x, player.y + 180, 25, "grey"); // Rita en tröja och kropp från (100, 100) till (300, 300) med färgen svart.
+
+    arc(player.x, player.y + 20, 20, 180, Math.PI * 2, "black"); // Rita en mun från (100, 100) med radien 180 och färgen svart.
+      //end playerbody
+    
+    var directionX = 0;
+    var directionY = 0;
+
+    if (keyboard.a) directionX -= 1;
+    if (keyboard.d) directionX += 1;
+    if (keyboard.w) directionY -= 1;
+    if (keyboard.s) directionY += 1;
+
+    if (directionX !== 0 || directionY !== 0) {
+      var directionLength = Math.sqrt(directionX * directionX + directionY * directionY);
+      player.speedX += directionX / directionLength * player.acceleration;
+      player.speedY += directionY / directionLength * player.acceleration;
+    } else {
+      player.speedX *= 0.8;
+      player.speedY *= 0.8;
+    }
+
+    var currentSpeed = Math.sqrt(player.speedX * player.speedX + player.speedY * player.speedY);
+    if (currentSpeed > player.maxSpeed) {
+      player.speedX = player.speedX / currentSpeed * player.maxSpeed;
+      player.speedY = player.speedY / currentSpeed * player.maxSpeed;
+    }
+
+    
+
+    player.x += player.speedX;
+    player.y += player.speedY;
+
+    var playerDeltaX = player.x - lastPlayerX;
+    mouse.x += playerDeltaX;
+    lastPlayerX = player.x;
+
+    if(player.x > totalWidth - 50) {
+      player.x = totalWidth - 50;
+    }
+    if(player.x < 50) {
+      player.x = 50;
+    }
+    if(player.y > totalHeight - 240) {
+      player.y = totalHeight - 240;
+    }
+    if(player.y < 30) {
+      player.y = 30;
+    }
+
+    if(keyboard.space) {
+      player.maxSpeed = 10
+      player.acceleration = 2;
+    } else {
+      player.maxSpeed = 5
+      player.acceleration = 0.5;
+    }
+
+    //end playermovement
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    if(mbtn.left === true) {
+      lineColor.color = "#ff9a42";
+
+      
+    } else {
+      lineColor.color = "darkred";
+    }
+
+    
+
+    for (var i = enemies.length - 1; i >= 0; i--) {
+      var enemy = enemies[i];
+
+      if (!enemy.isDead) {
+        moveEnemyTowardPlayer(enemy);
+      }
+
+      if (!enemy.isDead && enemy.respawnImmunity <= 0 && mbtn.left === true && enemyIsOnAimLine(enemy)) {
+        enemy.isDead = true;
+        playerKills += 1;
+
+        if (playerKills % 2 === 0 && Math.random() < 0.3) {
+          enemies.push(createEnemy());
+        }
+      }
+      
+
+      if (!enemy.isDead && enemy.respawnImmunity > 0) {
+        enemy.respawnImmunity -= 1;
+      }
+
+      if (enemy.isDead) {
+        enemy.respawnTimer += 1;
+
+        if (enemy.respawnTimer >= RESPAWN_TIME) {
+          enemies[i] = createEnemy();
+          enemy = enemies[i];
+        }
+      }
+
+      if (!enemy.isDead) {
+        circle(enemy.x, enemy.y, enemy.size - 10, enemy.color); // Rita fienden som en cirkel med slumpmässig färg och storlek.
+        rectangle(enemy.x - enemy.size/2, enemy.y + 20, enemy.size, 100, "grey"); // Rita fiendens kropp som en rektangel med färgen grå.
+        if (enemy.respawnImmunity > 0) {
+          circle(enemy.x, enemy.y, enemy.size, "rgba(255, 0, 0, 0.3)"); // Rita en vit cirkel över fienden för att visa respawn-immunitet.
+        }
+      }
+    }
+    var playerContactDistance = player.size;
+
+
+    if (liv <= 0) {
+      setTimeout(function(){
+  alert("Game Over!");
+}, 95);
+      liv = 3; // Reset lives to 3
+      player.x = totalWidth / 2; // Reset player position
+      player.y = totalHeight - totalHeight / 3;
+      enemies = [createEnemy()]; // Reset enemies
+    }
+
+    for (var j = 0; j < enemies.length; j++) {
+      var contactEnemy = enemies[j];
+      var dx = contactEnemy.x - player.x;
+      var dy = contactEnemy.y - player.y;
+      var distanceBetweenPlayerAndEnemy = Math.sqrt(dx * dx + dy * dy);
+
+      if (!contactEnemy.isDead && distanceBetweenPlayerAndEnemy < playerContactDistance) {
+        liv -= 1;
+        contactEnemy.isDead = true;
+        rectangle(0, 0, totalWidth, totalHeight, "rgba(255, 0, 0, 0.5)"); 
+        rectangle(0, 0, totalWidth, totalHeight, "rgba(255, 255, 255, 0.5)"); // Flash the screen red and white when the player takes damage.
+      }
+    }
+
+    canvas.style.cursor = "none";
+    rectangle(mouse.x - 8, mouse.y - 8, 16, 16, "rgba(255, 255, 255, 0.6)");
+    rectangle(mouse.x - 6, mouse.y - 6, 12, 12, "rgba(0, 0, 0, 0.8)");
+
+    var healthBarWidth = 80;
+    var healthBarHeight = 15;
+    var healthRatio = Math.max(0, liv / maxLiv);
+    var healthBarX = player.x - healthBarWidth / 2;
+    var healthBarY = player.y - 70;
+
+    rectangle(healthBarX, healthBarY, healthBarWidth, healthBarHeight, "darkred");
+    rectangle(healthBarX, healthBarY, healthBarWidth * healthRatio, healthBarHeight, "limegreen");
+
+    
+
+    
+    console.log(enemies.length);
+    
+
+} // end of code block
+
+  </script>
+</body>
+</html>
