@@ -9,12 +9,7 @@
   <script src="http://koda.nu/simple.js">
 
     var liv = 1; //controls how much life the player starts with/has during the game
-  var maxLiv = 3; //controls how much life the player can have
-
-  if (liv <= 0) {
-      alert(liv);
-    }
-
+    var maxLiv = 3; //controls how much life the player can have at maximum.
 
   // Skapar ett objekt för spelaren (player)
   var player = { x: totalWidth/2,
@@ -36,12 +31,12 @@
   var SPAWN_IMMUNITY_TIME = 80; //controls how long the enemy is immune after respawning
 
   //renders enemy object with midl
-  function createEnemy() {
-     return { x: random(50, totalWidth - 50),
+  function createEnemy() {  //creates a new enemy object with random properties
+     return { x: random(50, totalWidth - random(50)),
        y: random(30, totalHeight / 3),
         size: random(35, 50),
-        color: randomColor(random(40), random(200, 255), random(40)),
-       maxSpeed: random(4.9, 5.3),
+        color: randomColor(random(20), random(200, 255), random(20)),
+       maxSpeed: random(4.9, 5.4),
        isDead: false,
         respawnTimer: 0,
         respawnImmunity: SPAWN_IMMUNITY_TIME };
@@ -51,6 +46,15 @@
   var playerKills = 0;
   var damageTextTimer = 0;
   var lastPlayerX = player.x;
+
+  var HEALTHPACK_RESPAWN_TIME = 300; // how many frames before the health pack appears again
+  var healthPack = {
+    x: random(80, totalWidth - 80),
+    y: random(80, totalHeight - 220),
+    size: 18,
+    active: true,
+    respawnTimer: 0
+  };
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,29 +150,10 @@ function enemyIsOnAimLine(enemy) { // checks if the enemy is on the line between
 }
 
 
-document.getElementById("canvas").onmousedown = function(event) { //limits the player to only being able to shoot a limited number of times per second, to prevent spamming the mouse button
-            myfns(event)
-            };
- 
-            var myfns = function(e) { //function to handle mouse down events
- 
-            var e = e || window.event; 
-            var btnCode; 
- 
-            if ('object' === typeof e) { // Check if the event object is available
-                btnCode = e.button;
- 
-                switch (btnCode) { // Check which mouse button was pressed
-                case 0: 
-                    mbtn.left = true; // Left mouse button
-                    break; }}}
-
-                    var mbtn = { left: false }; // Object to track the state of the left mouse button
-                    var wasMbtnLeft = false; // Variable to track the previous state of the left mouse button
-
-                    document.getElementById("canvas").onmouseup = function() {
-                      mbtn.left = false;
-                    };
+// Semi-auto firing: only fire on the moment the mouse button is pressed,
+// not while it is held down.
+var shoot = false;
+var mouseWasDown = false;
 
 function moveEnemyTowardPlayer(enemy) {
   var directionX = player.x - enemy.x;
@@ -184,15 +169,15 @@ function moveEnemyTowardPlayer(enemy) {
 function update() {
   
 
-clearScreen(); // Rensa skärmen innan nästa ritning
+clearScreen(); 
 
 
   drawSunsetBackground();
-  rectangle(0, totalHeight - totalHeight/3, totalWidth, totalHeight - totalHeight/10, "green"); // Rita bakgrundsmark
+  rectangle(0, totalHeight - totalHeight/3, totalWidth, totalHeight - totalHeight/10, "green"); // Draw the ground as a green rectangle at the bottom of the screen.
   
 
 
-line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje från spelaren till musen med tjocklek 20 och färgen svart.
+line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Draw a line from the player to the mouse with a thickness of 20 and the color black.
 
       // Rita figuren med spelarens egenskaper
   circle(player.x, player.y, player.size - 10, player.color2);  
@@ -215,15 +200,15 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
     arc(player.x, player.y + 20, 20, 180, Math.PI * 2, "black"); // Rita en mun från (100, 100) med radien 180 och färgen svart.
       //end playerbody
     
-    var directionX = 0;
-    var directionY = 0;
+    var directionX = 0; //horizontal movement direction from starting point, will be modified based on keyboard input
+    var directionY = 0; //vertical movement direction from starting point, will be modified based on keyboard input
 
     if (keyboard.a) directionX -= 1;
     if (keyboard.d) directionX += 1;
     if (keyboard.w) directionY -= 1;
     if (keyboard.s) directionY += 1;
 
-    if (directionX !== 0 || directionY !== 0) {
+    if (directionX !== 0 || directionY !== 0) { // If any movement key is pressed, calculate the direction and apply acceleration
       var directionLength = Math.sqrt(directionX * directionX + directionY * directionY);
       player.speedX += directionX / directionLength * player.acceleration;
       player.speedY += directionY / directionLength * player.acceleration;
@@ -232,7 +217,7 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
       player.speedY *= 0.8;
     }
 
-    var currentSpeed = Math.sqrt(player.speedX * player.speedX + player.speedY * player.speedY);
+    var currentSpeed = Math.sqrt(player.speedX * player.speedX + player.speedY * player.speedY); // Calculate the current speed of the player
     if (currentSpeed > player.maxSpeed) {
       player.speedX = player.speedX / currentSpeed * player.maxSpeed;
       player.speedY = player.speedY / currentSpeed * player.maxSpeed;
@@ -243,24 +228,24 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
     player.x += player.speedX;
     player.y += player.speedY;
 
-    var playerDeltaX = player.x - lastPlayerX;
+    var playerDeltaX = player.x - lastPlayerX; // Calculate the change in player position since the last frame
     mouse.x += playerDeltaX;
     lastPlayerX = player.x;
 
-    if(player.x > totalWidth - 50) {
+    if(player.x > totalWidth - 50) { // Right edge player border collision detection
       player.x = totalWidth - 50;
     }
-    if(player.x < 50) {
+    if(player.x < 50) { // Left edge player border collision detection
       player.x = 50;
     }
-    if(player.y > totalHeight - 240) {
+    if(player.y > totalHeight - 240) { // Bottom edge player border collision detection
       player.y = totalHeight - 240;
     }
-    if(player.y < 30) {
+    if(player.y < 30) { // Top edge player border collision detection
       player.y = 30;
     }
 
-    if(keyboard.space) {
+    if(keyboard.space) { // If the spacebar is pressed, increase the player's speed and acceleration
       player.maxSpeed = 10
       player.acceleration = 2;
     } else {
@@ -271,28 +256,34 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
     //end playermovement
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if(mbtn.left === true) {
-      lineColor.color = "#ff9a42";
+    // Detect a new left-click. If the mouse is already down, do nothing.
+    // This makes the gun semi-automatic instead of firing continuously.
+    shoot = mouse.left && !mouseWasDown;
+    mouseWasDown = mouse.left;
 
-      
+    if (shoot) {
+      lineColor.color = "#ff9a42"; // Gun is firing
     } else {
-      lineColor.color = "darkred";
+      lineColor.color = "darkred"; // Gun is idle
     }
 
-    
-
-    for (var i = enemies.length - 1; i >= 0; i--) {
+    for (var i = enemies.length - 1; i >= 0; i--)  // Iterate through the enemies array in reverse order to avoid issues when removing elements
+    {
       var enemy = enemies[i];
 
       if (!enemy.isDead) {
         moveEnemyTowardPlayer(enemy);
       }
 
-      if (!enemy.isDead && enemy.respawnImmunity <= 0 && mbtn.left === true && enemyIsOnAimLine(enemy)) {
+      if (!enemy.isDead && enemy.respawnImmunity <= 0 && shoot && enemyIsOnAimLine(enemy)) {
         enemy.isDead = true;
         playerKills += 1;
 
-        if (playerKills % 2 === 0 && Math.random() < 0.3) {
+        if (playerKills % 2 === 0 && Math.random() < 0.2) {
+          enemies.push(createEnemy());
+        }
+
+        if (playerKills % 5 === 0 && Math.random() < 0.1) {
           enemies.push(createEnemy());
         }
       }
@@ -321,6 +312,31 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
     }
     var playerContactDistance = player.size;
 
+    // Health pack logic: it spawns, can be picked up, and then respawns after a delay.
+    if (healthPack.active) {
+      var hpDx = healthPack.x - player.x;
+      var hpDy = healthPack.y - player.y;
+      var hpDistance = Math.sqrt(hpDx * hpDx + hpDy * hpDy);
+
+      if (hpDistance < player.size + healthPack.size) {
+        liv = Math.min(maxLiv, liv + 1); // restore 1 life each time it is touched
+        healthPack.active = false;
+        healthPack.respawnTimer = 0;
+      }
+
+      circle(healthPack.x, healthPack.y, healthPack.size, "limegreen");
+      rectangle(healthPack.x - 5, healthPack.y - 12, 10, 24, "white");
+      rectangle(healthPack.x - 12, healthPack.y - 5, 24, 10, "white");
+    } else {
+      healthPack.respawnTimer += 1;
+
+      if (healthPack.respawnTimer >= HEALTHPACK_RESPAWN_TIME) {
+        healthPack.x = random(80, totalWidth - 80);
+        healthPack.y = random(80, totalHeight - 220);
+        healthPack.active = true;
+        healthPack.respawnTimer = 0;
+      }
+    }
 
     if (liv <= 0) {
       setTimeout(function(){
@@ -362,7 +378,7 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Rita en linje
     
 
     
-    console.log(enemies.length);
+    
     
 
 } // end of code block
