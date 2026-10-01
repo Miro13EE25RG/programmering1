@@ -20,7 +20,8 @@
         speedY: 0,
          speedX: 0,
        acceleration: 0.5,
-         maxSpeed: 5 //controls how fast the player can move
+         maxSpeed: 5, //controls how fast the player can move
+      lifetime: 0,
         };
 
     var lineColor = { color: "darkred" };
@@ -338,11 +339,23 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Draw a line f
       }
     }
 
+    if (liv >= 0) {
+      player.lifetime += 1 / updatesPerSecond; // Increment lifetime in seconds
+    }
+    if (player.lifetime >= random(59, 60)) { // If the player has survived for 1 minute, show a congratulatory message.
+       alert("Congratulations! You survived for 1 minute and killed " + playerKills + " enemies.");
+    }
+    console.log("Player lifetime: " + player.lifetime.toFixed(2) + " seconds, Lives: " + liv + ", Kills: " + playerKills);
+
     if (liv <= 0) {
+      player.lifetime = Math.round(player.lifetime); // Store the rounded lifetime; Math.round returns a value.
+      var finalLifetime = Math.round(player.lifetime); // Preserve the game-over values for the delayed alert.
       setTimeout(function(){
-  alert("Game Over!");
+  alert("Game Over! you lived for " + finalLifetime + " seconds and killed " + playerKills + " enemies.");
 }, 95);
       liv = 3; // Reset lives to 3
+      player.lifetime = 0; // Reset lifetime
+      playerKills = 0; // Reset kills
       player.x = totalWidth / 2; // Reset player position
       player.y = totalHeight - totalHeight / 3;
       enemies = [createEnemy()]; // Reset enemies
