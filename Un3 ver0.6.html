@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kapitel 1 Lektion 2</title>
+  <title>JZombieshooter</title>
 </head>
 <body>
   <script src="http://koda.nu/simple.js">
 
     var liv = 1; //controls how much life the player starts with/has during the game
     var maxLiv = 3; //controls how much life the player can have at maximum.
+
+
 
   // Skapar ett objekt för spelaren (player)
   var player = { x: totalWidth/2,
@@ -20,8 +22,8 @@
         speedY: 0,
          speedX: 0,
        acceleration: 0.5,
-         maxSpeed: 5, //controls how fast the player can move
-      lifetime: 0,
+         maxSpeed: 5, 
+      lifetime: 0, // keeps track of how long the player has survived in seconds
         };
 
     var lineColor = { color: "darkred" };
@@ -387,6 +389,9 @@ line(player.x, player.y, mouse.x, mouse.y, 2, lineColor.color); // Draw a line f
 
     rectangle(healthBarX, healthBarY, healthBarWidth, healthBarHeight, "darkred");
     rectangle(healthBarX, healthBarY, healthBarWidth * healthRatio, healthBarHeight, "limegreen");
+
+    text(100, 50, 30, "Kills: " + playerKills, "white");
+    text(100, 90, 30, "Time Alive: " + player.lifetime.toFixed(1) + " seconds", "white");
 
     
 
