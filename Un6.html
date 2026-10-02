@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <script src="http://koda.nu/simple.js">
+    //ONLY put code here if you want it to work.
+
+
+        
+
+        var game = { lives: 20, money: 100, score: 0, wave: 1, gameOver: false }; // Game state variables
+        var towers = [];
+        var enemies = [
+
+        
+        ];
+        var towerTypes = { // different types of towers with different costs, ranges, damage, fire rates, and levels. The level determines how many upgrades the tower has.
+            none: { cost: 0, range: 0, damage: 0, fireRate: 0, level: 0 },
+            basic: { cost: 50, range: 120, damage: 1, fireRate: 30, level: 1 },
+            sniper: { cost: 100, range: 200, damage: 3, fireRate: 25, level: 1 },
+            rapid: { cost: 90, range: 100, damage: 0.5, fireRate: 40, level: 1 }
+        };
+
+        var projectiles = [ //different types of projectiles with different speeds, damage, and colors. Damage is by default bound to the tower's damage stat, though can vary.
+             { speed: 5, damage: towerTypes.basic.damage, color: "black" }
+        ];
+        var enemyPath = [ // the route enemies will take, defined by a series of points. The enemies will move from one point to the next in order.
+            { x: 0, y: totalHeight / 3 },
+            { x: totalWidth / 3, y: totalHeight / 3 },
+            { x: totalWidth / 3, y: totalHeight * 2 / 3 },
+            { x: totalWidth * 2 / 3, y: totalHeight * 2 / 3 },
+            { x: totalWidth, y: totalHeight / 3 }
+        ];
+
+        var array = [ 4,3,6,4,7,1 ]
+        
+
+        var selectedTowerType = "basic", // the type of tower currently selected for placement
+            selectedTower = null; // the tower currently selected for upgrade or sale
+        var waveState = { enemiesToSpawn: 0, spawnTimer: 0, active: false }; // State variables for the current wave of enemies. spawnTimer determines how long until the next enemy spawns. enemiesToSpawn is how many enemies are left to spawn in the current wave.
+        console.log (projectiles[0].damage)
+        function update(framespersecond = 60) {
+            clearScreen()
+            
+        
+        
+
+            
+
+
+
+            //func-update end
+        }
+     
+
+
+    </script>
+</body>
+</html>
