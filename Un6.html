@@ -40,12 +40,24 @@
         var array = [ 4,3,6,4,7,1 ]
         
 
+        function drawTower(tower) {
+            save();
+            translate(tower.x, tower.y);
+            circle(0, 0, 20, "gray");
+            text(0, -30, 12, tower.type + " (Lvl " + tower.level + ")", "black");
+            restore();
+        }
+        
+
         var selectedTowerType = "basic", // the type of tower currently selected for placement
             selectedTower = null; // the tower currently selected for upgrade or sale
         var waveState = { enemiesToSpawn: 0, spawnTimer: 0, active: false }; // State variables for the current wave of enemies. spawnTimer determines how long until the next enemy spawns. enemiesToSpawn is how many enemies are left to spawn in the current wave.
         console.log (projectiles[0].damage)
         function update(framespersecond = 60) {
             clearScreen()
+            if (mouse.left){
+                drawTower({ x: mouse.x, y: mouse.y, type: selectedTowerType, level: towerTypes[selectedTowerType].level });
+            }
             
         
         
