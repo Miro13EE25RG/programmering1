@@ -8,13 +8,29 @@
 <body>
     <script src="http://koda.nu/simple.js">
         //ONLY put code here if you want it to work.
-        var a = prompt("hur många?");
+        
 var player = { x: 100, y: 400, size: 20, color: "blue", speed: 4 };
 
-var zombie1 = { x: 300, y: 220, speed: 2 };
-var zombie2 = { x: 500, y: 400, speed: 3 };
-var zombie3 = { x: 700, y: 260 };
+var star = [];
+for (var i = 0; i < 5; i++) {
+  star.push({ x: random(100, totalWidth - 100), y: random(100, totalHeight - 100), size: random(8, 10) , color: "gold"});
+}
+
+function power(x, y, s, c) {
+  picture(x, y, "C:/Users/mioron13/OneDrive%20-%20Lärande/Bilder/mariostar.png");
+}
+
+
 var poang = 0;
+
+var enemies = [
+  { x: random(400, totalWidth - 100), y: random(100, totalHeight - 100),}, //x  
+  { x: random(400, totalWidth - 100), y: random(100, totalHeight - 100),}, //x
+  { x: random(400, totalWidth - 100), y: random(100, totalHeight - 100),}, //x
+  { x: random(400, totalWidth - 100), y: random(100, totalHeight - 100),}, //x
+  { x: random(400, totalWidth - 100), y: random(100, totalHeight - 100),}, //x
+  
+];
 
 function drawZombie(x, y) {
   save();
@@ -32,9 +48,10 @@ function update() {
   clearScreen();
   text(20, 30, 24, "Zombiespelet", "black");
 
-//   drawZombie(zombie1.x, zombie1.y);
-//   drawZombie(zombie2.x, zombie2.y);
-//   drawZombie(zombie3.x, zombie3.y);
+if(keyboard.space) {
+  enemies.push({ x: random(400, totalWidth - 100), y: random(100, totalHeight - 100), });
+
+}
 
   circle(player.x, player.y, player.size, player.color);
 
@@ -51,68 +68,28 @@ function update() {
     player.y = player.y + player.speed;
   }
 
-//   if (zombie1.x < player.x) {
-//     zombie1.x = zombie1.x + zombie1.speed;
-//   }
-//   if (zombie1.x > player.x) {
-//     zombie1.x = zombie1.x - zombie1.speed;
-//   }
-//   if (zombie1.y < player.y) {
-//     zombie1.y = zombie1.y + zombie1.speed;
-//   }
-//   if (zombie1.y > player.y) {
-//     zombie1.y = zombie1.y - zombie1.speed;
-//   }
-
-//   if (distance(player, zombie1) < 65) {
-//     text(280, 250, 50, "GAME OVER", "red");
-//     stopUpdate();
-//   } else {
-//     poang = poang + 1;
-//     text(20, 70, 24, "Poäng: " + poang, "black");
-//   }
-
-//   if (zombie2.x < player.x) {
-//     zombie2.x = zombie2.x + zombie2.speed;
-//   }
-//   if (zombie2.x > player.x) {
-//     zombie2.x = zombie2.x - zombie2.speed;
-//   }
-//   if (zombie2.y < player.y) {
-//     zombie2.y = zombie2.y + zombie2.speed;
-//   }
-//   if (zombie2.y > player.y) {
-//     zombie2.y = zombie2.y - zombie2.speed;
-//   }
-
-//   if (distance(player, zombie2) < 65) {
-//     text(280, 250, 50, "GAME OVER", "red");
-//     stopUpdate();
-//   } else {
-//     poang = poang + 1;
-//   }
-    var i = 0;
-    while (i < a) {
-    var waveX = 100 + i * (totalWidth - 200) / (a - 1);
-    drawZombie(waveX, 750 + random(0, 100));
-    if(distance(player.x, player.y, waveX, 750 + random(-5, 5)) < 65){
-        text(280, 250, 50, "GAME OVER", "red");
-        stopUpdate();
-    }
-    i += 1
-    }
+    
     ///EGEN KOD
-    var j = 0;
-    while (j < a) {
-        var waveY = 100 + j * (totalWidth - 200) / (a - 1);
-        drawZombie(waveY, 150 + random(0, 100));
-        if(distance(player.x, player.y, waveY, 150 + random(-5, 5)) < 65){
-            text(280, 250, 50, "GAME OVER", "red");
-            stopUpdate();
-        }
-        j += 1
+  for (var i = 0; i < enemies.length; i++) {
+    drawZombie(enemies[i].x, enemies[i].y)
+    if(distance(player.x, player.y, enemies[i].x, enemies[i].y) < 65) {
+      text(280, 250, 50, "GAME OVER", "red");
+      stopUpdate();
     }
+    
+  }
+   for (var i = 0; i < star.length; i++) {
+    power(star[i].x, star[i].y, star[i].size, star[i].color); 
+}
+if(distance(player.x, player.y, star[i].x, star[i].y) < player.size) { // funkar inte korrekt just nu, får problemkoden att den inte hittar stjärnorna, men det är för att den kollar på i som är utanför loopen.
+      poang = poang + 10;
+      star[i].x = random(100, totalWidth - 100);
+      star[i].y = random(100, totalHeight - 100);
+      
+    }
+    text(20, 60, 30, "Poäng: " + poang, "black");
 }
     </script>
 </body>
+
 </html>
