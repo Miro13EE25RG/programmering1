@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+</head>
+<body>
+    <script src="http://koda.nu/simple.js">
+        var snakeLength = 40;
+        var segmentSpacing = 13;
+        var turnSpeed = 0.06;
+        var moveSpeed = 3;
+        var maxSegmentAngle = 15 * Math.PI / 180;
+        var segmentTurnEase = 0.18;
+        var segmentFollowEase = 0.18;
+        var maxSegmentSpacing = segmentSpacing + moveSpeed * 1.25;
+        var headX = totalWidth / 2;
+        var headY = totalHeight / 2;
+        var heading = 0;
+        var segments = [];
+
+        for (var i = 1; i < snakeLength; i++) {
+            segments.push({
+                x: headX - i * segmentSpacing,
+                y: headY,
+                angle: 0
+            });
+        }
+
+        function normalizeAngle(angle) {
+            while (angle > Math.PI) {
+                angle -= Math.PI * 2;
+            }
+            while (angle < -Math.PI) {
+                angle += Math.PI * 2;
+            }
+            return angle;
+        }
+
+        function pointAlongHeading(forward, sideways) {
+            var forwardX = Math.cos(heading);
+            var forwardY = Math.sin(heading);
+            return {
+                x: headX + forwardX * forward - forwardY * sideways,
+                y: headY + forwardY * forward + forwardX * sideways
+            };
+        }
+
+        function drawOrientedTriangle(point1, point2, point3, color) {
+            triangle(
+                point1.x, point1.y,
+                point2.x, point2.y,
+                point3.x, point3.y,
+                color
+            );
+        }
+
+        function pointAlongDirection(origin, angle, forward, sideways) {
+            var forwardX = Math.cos(angle);
+            var forwardY = Math.sin(angle);
+            return {
+                x: origin.x + forwardX * forward - forwardY * sideways,
+                y: origin.y + forwardY * forward + forwardX * sideways
+            };
+        }
+
+        function drawFins(position, angle, radius) {
+            var finTip = radius + 5;
+
+            drawOrientedTriangle(
+                pointAlongDirection(position, angle, -1, radius * 0.55),
+                pointAlongDirection(position, angle, -finTip, radius + 7),
+                pointAlongDirection(position, angle, -radius * 0.75, radius * 0.4),
+                "#168c55"
+            );
+            drawOrientedTriangle(
+                pointAlongDirection(position, angle, -1, -radius * 0.55),
+                pointAlongDirection(position, angle, -finTip, -radius - 7),
+                pointAlongDirection(position, angle, -radius * 0.75, -radius * 0.4),
+                "#168c55"
+            );
+        }
+
+        function segmentRadius(index) {
+            var bodyProgress = snakeLength > 1 ? index / (snakeLength - 1) : 0;
+            return 12 - bodyProgress * 3;
+        }
+
+        function update() {
+            clearScreen("#f3f6fa");
+
+            if (keyboard.a) {
+                heading -= turnSpeed;
+            }
+            if (keyboard.d) {
+                heading += turnSpeed;
+            }
+
+            var movement = 0;
+            if (keyboard.w) {
+                movement += moveSpeed;
+            }
+            if (keyboard.s) {
+                movement -= moveSpeed;
+            }
+
+            if (movement !== 0) {
+                headX += Math.cos(heading) * movement;
+                headY += Math.sin(heading) * movement;
+            }
+
+            for (var i = 0; i < segments.length; i++) {
+                var segment = segments[i];
+                var frontSegment = i === 0
+                    ? { x: headX, y: headY, angle: heading }
+                    : segments[i - 1];
+                var dx = frontSegment.x - segment.x;
+                var dy = frontSegment.y - segment.y;
+                var distanceToFront = Math.sqrt(dx * dx + dy * dy);
+                var angleToFront = Math.atan2(dy, dx);
+                var desiredAngleOffset = normalizeAngle(angleToFront - frontSegment.angle);
+                desiredAngleOffset = Math.max(-maxSegmentAngle, Math.min(maxSegmentAngle, desiredAngleOffset));
+                var desiredAngle = frontSegment.angle + desiredAngleOffset;
+                var angleDifference = normalizeAngle(desiredAngle - segment.angle);
+                segment.angle += angleDifference * segmentTurnEase;
+
+                var angleFromFront = normalizeAngle(segment.angle - frontSegment.angle);
+                angleFromFront = Math.max(-maxSegmentAngle, Math.min(maxSegmentAngle, angleFromFront));
+                segment.angle = frontSegment.angle + angleFromFront;
+
+                if (distanceToFront > 0) {
+                    var targetDistance = Math.min(segmentSpacing, distanceToFront);
+                    var targetX = frontSegment.x - dx / distanceToFront * targetDistance;
+                    var targetY = frontSegment.y - dy / distanceToFront * targetDistance;
+                    segment.x += (targetX - segment.x) * segmentFollowEase;
+                    segment.y += (targetY - segment.y) * segmentFollowEase;
+                }
+
+                dx = frontSegment.x - segment.x;
+                dy = frontSegment.y - segment.y;
+                distanceToFront = Math.sqrt(dx * dx + dy * dy);
+                if (distanceToFront > maxSegmentSpacing) {
+                    segment.x = frontSegment.x - dx / distanceToFront * maxSegmentSpacing;
+                    segment.y = frontSegment.y - dy / distanceToFront * maxSegmentSpacing;
+                }
+            }
+
+            for (var i = segments.length - 1; i >= 0; i--) {
+                var segment = segments[i];
+                var radius = segmentRadius(i + 1);
+                circle(segment.x, segment.y, radius, "#35b96f");
+                drawFins(segment, segment.angle, radius);
+            }
+
+            circle(headX, headY, 12, "#168c55");
+            drawFins({ x: headX, y: headY }, heading, 12);
+            drawOrientedTriangle(
+                pointAlongHeading(8, -6),
+                pointAlongHeading(8, 6),
+                pointAlongHeading(28, 0),
+                "#0c633b"
+            );
+        }
+    </script>
+</body>
+</html>

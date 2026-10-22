@@ -81,7 +81,7 @@ if(keyboard.space) {
    for (var i = 0; i < star.length; i++) {
     power(star[i].x, star[i].y, star[i].size, star[i].color); 
 }
-if(distance(player.x, player.y, star[i].x, star[i].y) < player.size) { // funkar inte korrekt just nu, får problemkoden att den inte hittar stjärnorna, men det är för att den kollar på i som är utanför loopen.
+if(distance(player.x, player.y, star[i].x, star[i].y) < player.size) { // funkar inte korrekt just nu, får problemkoden att den inte hittar stjärnorna.
       poang = poang + 10;
       star[i].x = random(100, totalWidth - 100);
       star[i].y = random(100, totalHeight - 100);
