@@ -43,13 +43,13 @@
 // en fiende som heter fastEnemy ska ha dessa variabler; den ska ha 10 hälsa, röra sig med en hastighet på 1.5 och göra 2 skada när den når slutet på banan.
 
 // 3. Lägg till flera olika typer av projektiler som gör olika mängder skada och har olika skjuthastigheter.
-// en projektil som heter basicProjectile ska ha dessa variabler; den ska röra sig med en hastighet på 5, göra 1 skada per träff och vara svart.
-// en projektil som heter sniperProjectile ska ha dessa variabler; den ska röra sig med en hastighet på 10, göra 3 skada per träff och vara gul.
+// en projektil som heter basicProjectile ska ha dessa variabler; den ska röra sig med en hastighet på 5, ha en skademultiplikator på 1 och vara svart.
+// en projektil som heter sniperProjectile ska ha dessa variabler; den ska röra sig med en hastighet på 10, ha en skademultiplikator på 3 och vara gul.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //        PLAN SLUT
 
 
-
+updatesPerSecond = 60;
 var playerstat = { money: 100, health: 100, ownedTowerCount: [] };
 if (playerstat.health <= 0) {
     // avgör om spelaren har förlorat
@@ -57,26 +57,132 @@ if (playerstat.health <= 0) {
 }
 var timeAlive = 0
 
-//torntyper
-var basicTower = { cost: 50, projectileCount: 1,  range: 100, damage: 1, fireRate: 1, upgradeTier: 1, armorHit: false };
-var sniperTower = { cost: 100, projectileCount: 1,  range: 200, damage: 3, fireRate: 0.5, upgradeTier: 1, armorHit: false };
-var gatlingTower = { cost: 200, projectileCount: 1, range: 150, damage: 2, fireRate: 2, upgradeTier: 1, armorHit: false };
-var shotgunTower = { cost: 150, projectileCount: 5, range: 80, damage: 2, fireRate: 0.3, upgradeTier: 1, armorHit: false };
-var cannoneer = { cost: 300, projectileCount: 1, range: 250, damage: 10, fireRate: 0.1, upgradeTier: 1, armorHit: true };
 
 
 //skottyper
-var basicProjectile = { speed: 5, damage: 1, color: "black", armorHit: false };
-var sniperProjectile = { speed: 10, damage: 3, color: "yellow", armorHit: false };
-Var pierceProjectile = { speed: 7, damage: 2, color: "blue", pierce: true };
+var basicProjectile = {
+    speed: 5, damageMultiplier: 1,
+    color: "black", armorHit: false
+};
+var sniperProjectile = {
+    speed: 10, damageMultiplier: 3,
+    color: "yellow", armorHit: false
+};
+var pierceProjectile = {
+    speed: 7, damageMultiplier: 2,
+    color: "blue", armorHit: true
+};
+var explosiveProjectile = {
+    speed: 4, damageMultiplier: 5,
+    color: "red", armorHit: true,
+    splashDamage: true, splashRadius: 20
+};
+var sabotProjectile = {
+    speed: 8, damageMultiplier: 8,
+    color: "grey", armorHit: true
+};
+
+//torntyper
+var basicTower = {
+    isUpgrade: false, isInShop: true,
+    cost: 50, projectileCount: 1,
+    range: 100, damage: 1,
+    fireRate: 1, upgradeTier: 1,
+    ammoType: basicProjectile, allowedAmmo: [basicProjectile, sniperProjectile]
+};
+var sniperTower = {
+    isUpgrade: false, isInShop: true,
+    cost: 100, projectileCount: 1,
+    range: 200, damage: 3,
+    fireRate: 0.5, upgradeTier: 2,
+    ammoType: sniperProjectile, allowedAmmo: [sniperProjectile, basicProjectile]
+};
+var gatlingTower = {
+    isUpgrade: true, isInShop: false,
+    cost: 200, projectileCount: 1,
+    range: 120, damage: 2,
+    fireRate: 2, upgradeTier: 2,
+    ammoType: pierceProjectile, allowedAmmo: [pierceProjectile, basicProjectile]
+};
+var shotgunTower = {
+    isUpgrade: true, isInShop: false,
+    cost: 150, projectileCount: 5,
+    range: 80, damage: 2,
+    fireRate: 0.3, upgradeTier: 2,
+    ammoType: basicProjectile, allowedAmmo: [basicProjectile, sniperProjectile]
+};
+var cannoneer = {
+    isUpgrade: false, isInShop: true,
+    cost: 300, projectileCount: 1,
+    range: 250, damage: 10,
+    fireRate: 0.1, upgradeTier: 1,
+    ammoType: explosiveProjectile, allowedAmmo: [explosiveProjectile, sabotProjectile]
+};
+
+
 
 
 //fiendetyper
-var basicEnemy = { health: 5, speed: 1, damage: 1, armor: false, killPayout: 10 };
-var fastEnemy = { health: 10, speed: 1.5, damage: 2, armor: false, killPayout: 20 };
-var heavyEnemy = { health: 20, speed: 0.8, damage: 5, armor: false, killPayout: 25 };
-var armoredEnemy = { health: 10, speed: 1, damage: 2, armor: true, killPayout: 25 };
+var basicEnemy = {
+    health: 5, speed: 1,
+    damage: 1, killPayout: 10,
+    firstwave: 1
+};
+var fastEnemy = {
+    health: 10, speed: 1.5,
+    damage: 2, killPayout: 20,
+    firstwave: 3
+};
+var heavyEnemy = {
+    health: 20, speed: 0.8,
+    damage: 5, killPayout: 25,
+    firstwave: 5
+};
+var armoredEnemy = {
+    health: 10, speed: 1,
+    damage: 2, armorHit: true,
+    killPayout: 25, firstwave: 10
+};
+var bossEnemy = {
+    health: 100, speed: 0.5,
+    damage: 75, armorHit: false,
+    killPayout: 100, firstwave: 15
+};
+var flyingEnemy = {
+    health: 5, speed: 1.2,
+    damage: 1, flying: true,
+    killPayout: 15, firstwave: 7
+};
+var swarmEnemy = {
+    health: 2, speed: 1.8, damage: 1,
+    killPayout: 5, firstwave: 4
+};
+var splitterEnemy = {
+    health: 15, speed: 0.9, damage: 2,
+    killPayout: 20, firstwave: 10,
+    splitsOnDeath: true, splitCount: 4
+};
+var healerEnemy = {
+    health: 12, speed: 0.8, damage: 1,
+    killPayout: 25, firstwave: 12,
+    healRadius: 50, healAmount: 1
+};
 
+function applyHitDamage(tower, enemy) {
+    var projectile = tower.ammoType;
+
+    if (enemy.armorHit && !projectile.armorHit) {
+        return 0;
+    }
+
+    var damage = tower.damage * projectile.damageMultiplier;
+    enemy.health = Math.max(0, enemy.health - damage);
+    return damage;
+}
+
+function isEnemyDead(enemy) {
+    return enemy.health <= 0;
+}
 
 
 
