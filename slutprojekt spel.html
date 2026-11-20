@@ -50,13 +50,13 @@
 
 
 updatesPerSecond = 60;
-var playerstat = { money: 100, health: 100, ownedTowerCount: [] };
+var playerstat = { money: 100, health: 100, ownedTowerCount: [] }; // ownedTowerCount ska användas för att visa hur många torn spelaren äger.
 
 if (playerstat.health <= 0) {
     // avgör om spelaren har förlorat
     rectangle(0, 0, totalWidth, totalHeight, "red");
 }
-var timeAlive = 0
+var timeAlive = 0 // ska användas för att visa hur länge spelaren levde innan de förlorade IFALL de förlorar.
 
 
 
@@ -123,7 +123,7 @@ var cannoneer = {
 
 
 
-//fiendetyper. 
+//fiendetyper. har info om hur mycket hälsa och hastighet de har, skada de gör till spelaren om de när slutet av banan, och mänden pegnar får från att döda dem.
 var basicEnemy = {
     health: 5, speed: 1,
     damage: 1, killPayout: 10,
@@ -195,7 +195,7 @@ var maps = [ //innehåller alla banor som spelaren kan välja.
         name: "Forest (Easy)",
         backgroundColor: "darkgreen",
         pathColor: "tan",
-        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array som placerar rektanglar med x, y, width, height i procent av skärmen.
             [0, 0.12, 0.82, 0.08],
             [0.78, 0.12, 0.08, 0.28],
             [0.15, 0.36, 0.71, 0.08],
@@ -209,7 +209,7 @@ var maps = [ //innehåller alla banor som spelaren kan välja.
         name: "Desert (Medium)",
         backgroundColor: "burlywood",
         pathColor: "saddlebrown",
-        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array som placerar rektanglar med x, y, width, height i procent av skärmen.
             [0, 0.15, 0.28, 0.08],
             [0.24, 0.15, 0.08, 0.31],
             [0.24, 0.38, 0.38, 0.08],
@@ -225,7 +225,7 @@ var maps = [ //innehåller alla banor som spelaren kan välja.
         name: "Snow (Hard)",
         backgroundColor: "lightblue",
         pathColor: "white",
-        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array som placerar rektanglar med x, y, width, height i procent av skärmen.
             [0.0001, 0.45, 0.32, 0.08], //har 0.0001 för att undvika att det blir en onödig felkod.
             [0.32, 0.45, 0.08, 0.17],
             [0.32, 0.62, 0.4, 0.08],
@@ -240,24 +240,24 @@ var maps = [ //innehåller alla banor som spelaren kan välja.
     }
 ];
 
-function drawButton(x, y, width, height, label) {
+function drawButton(x, y, width, height, label) { // gör bara en knapp så att man slipper skriva samma kod flera gånger.
     rectangle(x, y, width, height, "black");
     text(x + 16, y + height * 0.65, 22, label, "white");
 }
 
-function isMouseOver(x, y, width, height) {
+function isMouseOver(x, y, width, height) { // visar om spelaren har sin mus över en viss rektangel. används för knappar och kort.
     return mouse.x >= x && mouse.x <= x + width &&
         mouse.y >= y && mouse.y <= y + height;
 }
 
-function getMapCardX(index) {
+function getMapCardX(index) { // används för att räkna ut var korten med banorna ska placeras på skärmen.
     var cardWidth = totalWidth * 0.26;
     var gap = totalWidth * 0.04;
     var startX = (totalWidth - (cardWidth * maps.length + gap * (maps.length - 1))) / 2;
     return startX + index * (cardWidth + gap);
 }
 
-function drawMap(map, x, y, width, height) {
+function drawMap(map, x, y, width, height) { // används för att placera och centrera banorna på spelarens skärm.
     rectangle(x, y, width, height, map.backgroundColor);
 
     for (var i = 0; i < map.pathSegments.length; i++) {
@@ -272,7 +272,7 @@ function drawMap(map, x, y, width, height) {
     }
 }
 
-function drawMenu() {
+function drawMenu() { // används för att rita huvudmenyn.
     rectangle(0, 0, totalWidth, totalHeight, "darkgrey");
     text(totalWidth * 0.36, totalHeight * 0.32, 40, "Tower Defense", "white");
     drawButton(totalWidth * 0.35, totalHeight * 0.5, totalWidth * 0.3, 60, "Choose a map");
@@ -293,7 +293,7 @@ function drawMapSelect() {
         text(cardX + 16, cardY + cardHeight * 0.88, 22, maps[i].name, "white");
     }
 
-    drawButton(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50, "Back");
+    drawButton(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50, "Back"); // knapp för att backa från banväljningsmenyn.
 }
 
 function drawGameScene() {
@@ -305,7 +305,7 @@ function drawGameScene() {
 function update() {
     clearScreen();
 
-    var mouseClicked = mouse.left && !mouseWasDown;
+    var mouseClicked = mouse.left && !mouseWasDown; // visar om spelaren klickar med musen. stoppar spelaren från att klicka samma knapp om och om igen.
     mouseWasDown = mouse.left;
 
     if (currentScene === "menu") {
@@ -317,7 +317,7 @@ function update() {
         var cardWidth = totalWidth * 0.26;
         var cardHeight = totalHeight * 0.42;
 
-        if (mouseClicked && isMouseOver(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50)) {
+        if (mouseClicked && isMouseOver(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50)) { // if-satserna kollar om spelaren klickar på back-knappen i banväljningsmenyn.
             currentScene = "menu";
         } else if (mouseClicked) {
             for (var i = 0; i < maps.length; i++) {
@@ -334,7 +334,7 @@ function update() {
         }
     }
 
-    if (currentScene === "menu") {
+    if (currentScene === "menu") { 
         drawMenu();
     } else if (currentScene === "mapSelect") {
         drawMapSelect();
