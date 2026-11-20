@@ -51,6 +51,7 @@
 
 updatesPerSecond = 60;
 var playerstat = { money: 100, health: 100, ownedTowerCount: [] };
+
 if (playerstat.health <= 0) {
     // avgör om spelaren har förlorat
     rectangle(0, 0, totalWidth, totalHeight, "red");
@@ -59,7 +60,7 @@ var timeAlive = 0
 
 
 
-//skottyper
+//skottyper. De innehåller information om hur projektiler rör sig och gör skada och om de kan träffa fiender med armor.
 var basicProjectile = {
     speed: 5, damageMultiplier: 1,
     color: "black", armorHit: false
@@ -82,7 +83,7 @@ var sabotProjectile = {
     color: "grey", armorHit: true
 };
 
-//torntyper
+//torntyper. De innehåller info om hur snabbt torn attackerar, om man uppgraderar till dem eller köper dem, och vilka skott de kan använda.
 var basicTower = {
     isUpgrade: false, isInShop: true,
     cost: 50, projectileCount: 1,
@@ -122,7 +123,7 @@ var cannoneer = {
 
 
 
-//fiendetyper
+//fiendetyper. 
 var basicEnemy = {
     health: 5, speed: 1,
     damage: 1, killPayout: 10,
@@ -168,7 +169,7 @@ var healerEnemy = {
     healRadius: 50, healAmount: 1
 };
 
-function applyHitDamage(tower, enemy) {
+function applyHitDamage(tower, enemy) { //används för att räkna ut hur mycket skada som fienden tar när den träffas av ett torns projektil.
     var projectile = tower.ammoType;
 
     if (enemy.armorHit && !projectile.armorHit) {
@@ -180,8 +181,166 @@ function applyHitDamage(tower, enemy) {
     return damage;
 }
 
-function isEnemyDead(enemy) {
+function isEnemyDead(enemy) { //avgör om fienden är död eller ej.
     return enemy.health <= 0;
+}
+
+var currentScene = "menu"; //bestämmer vilken scen som ska visas.
+var selectedMap = null; //aktiva banan.
+var mouseWasDown = false; //visar bara om spelaren klickar med musen.
+var mainMenuButtonWidth = 180; // .
+
+var maps = [ //innehåller alla banor som spelaren kan välja.
+    {
+        name: "Forest (Easy)",
+        backgroundColor: "darkgreen",
+        pathColor: "tan",
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+            [0, 0.12, 0.82, 0.08],
+            [0.78, 0.12, 0.08, 0.28],
+            [0.15, 0.36, 0.71, 0.08],
+            [0.15, 0.36, 0.08, 0.3],
+            [0.15, 0.62, 0.68, 0.08],
+            [0.78, 0.62, 0.08, 0.24],
+            [0.78, 0.82, 0.22, 0.08]
+        ]
+    },
+    {
+        name: "Desert (Medium)",
+        backgroundColor: "burlywood",
+        pathColor: "saddlebrown",
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+            [0, 0.15, 0.28, 0.08],
+            [0.24, 0.15, 0.08, 0.31],
+            [0.24, 0.38, 0.38, 0.08],
+            [0.54, 0.23, 0.08, 0.23],
+            [0.54, 0.23, 0.4, 0.08],
+            [0.86, 0.23, 0.08, 0.39],
+            [0.56, 0.54, 0.38, 0.08],
+            [0.56, 0.54, 0.08, 0.3],
+            [0.56, 0.76, 0.44, 0.08]
+        ]
+    },
+    {
+        name: "Snow (Hard)",
+        backgroundColor: "lightblue",
+        pathColor: "white",
+        pathSegments: [ //används för att rita banan på skärmen. funkar som en array med x, y, width, height i procent av skärmen.
+            [0.0001, 0.45, 0.32, 0.08], //har 0.0001 för att undvika att det blir en onödig felkod.
+            [0.32, 0.45, 0.08, 0.17],
+            [0.32, 0.62, 0.4, 0.08],
+            [0.72, 0.62, 0.08, 0.22],
+            [0.72, 0.84, 0.28, 0.08],
+            [0.01, 0.45, 0.36, 0.08],
+            [0.32, 0.45, 0.08, 0.25],
+            [0.32, 0.62, 0.48, 0.08],
+            [0.72, 0.62, 0.08, 0.3],
+            [0.72, 0.84, 0.28, 0.08]
+        ]
+    }
+];
+
+function drawButton(x, y, width, height, label) {
+    rectangle(x, y, width, height, "black");
+    text(x + 16, y + height * 0.65, 22, label, "white");
+}
+
+function isMouseOver(x, y, width, height) {
+    return mouse.x >= x && mouse.x <= x + width &&
+        mouse.y >= y && mouse.y <= y + height;
+}
+
+function getMapCardX(index) {
+    var cardWidth = totalWidth * 0.26;
+    var gap = totalWidth * 0.04;
+    var startX = (totalWidth - (cardWidth * maps.length + gap * (maps.length - 1))) / 2;
+    return startX + index * (cardWidth + gap);
+}
+
+function drawMap(map, x, y, width, height) {
+    rectangle(x, y, width, height, map.backgroundColor);
+
+    for (var i = 0; i < map.pathSegments.length; i++) {
+        var segment = map.pathSegments[i];
+        rectangle(
+            x + segment[0] * width,
+            y + segment[1] * height,
+            segment[2] * width,
+            segment[3] * height,
+            map.pathColor
+        );
+    }
+}
+
+function drawMenu() {
+    rectangle(0, 0, totalWidth, totalHeight, "darkgrey");
+    text(totalWidth * 0.36, totalHeight * 0.32, 40, "Tower Defense", "white");
+    drawButton(totalWidth * 0.35, totalHeight * 0.5, totalWidth * 0.3, 60, "Choose a map");
+}
+
+function drawMapSelect() {
+    rectangle(0, 0, totalWidth, totalHeight, "darkgrey");
+    text(totalWidth * 0.33, totalHeight * 0.18, 32, "Choose a map", "white");
+
+    var cardY = totalHeight * 0.3;
+    var cardWidth = totalWidth * 0.26;
+    var cardHeight = totalHeight * 0.42;
+
+    for (var i = 0; i < maps.length; i++) {
+        var cardX = getMapCardX(i);
+        rectangle(cardX, cardY, cardWidth, cardHeight, "black");
+        drawMap(maps[i], cardX + 6, cardY + 6, cardWidth - 12, cardHeight * 0.68);
+        text(cardX + 16, cardY + cardHeight * 0.88, 22, maps[i].name, "white");
+    }
+
+    drawButton(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50, "Back");
+}
+
+function drawGameScene() {
+    drawMap(selectedMap, 0, 0, totalWidth, totalHeight);
+    text(totalWidth * 0.4 - 40, 35, 26, selectedMap.name + " map", "black");
+    drawButton(12, 10, 160, 44, "Main menu");
+}
+
+function update() {
+    clearScreen();
+
+    var mouseClicked = mouse.left && !mouseWasDown;
+    mouseWasDown = mouse.left;
+
+    if (currentScene === "menu") {
+        if (mouseClicked && isMouseOver(totalWidth * 0.35, totalHeight * 0.5, totalWidth * 0.3, 60)) {
+            currentScene = "mapSelect";
+        }
+    } else if (currentScene === "mapSelect") {
+        var cardY = totalHeight * 0.3;
+        var cardWidth = totalWidth * 0.26;
+        var cardHeight = totalHeight * 0.42;
+
+        if (mouseClicked && isMouseOver(totalWidth * 0.05, totalHeight * 0.84, totalWidth * 0.2, 50)) {
+            currentScene = "menu";
+        } else if (mouseClicked) {
+            for (var i = 0; i < maps.length; i++) {
+                if (isMouseOver(getMapCardX(i), cardY, cardWidth, cardHeight)) {
+                    selectedMap = maps[i];
+                    currentScene = "game";
+                    break;
+                }
+            }
+        }
+    } else if (currentScene === "game") {
+        if (mouseClicked && isMouseOver(12, 10, mainMenuButtonWidth, 44)) {
+            currentScene = "menu";
+        }
+    }
+
+    if (currentScene === "menu") {
+        drawMenu();
+    } else if (currentScene === "mapSelect") {
+        drawMapSelect();
+    } else if (currentScene === "game") {
+        drawGameScene();
+    }
 }
 
 
